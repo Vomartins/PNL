@@ -9,6 +9,8 @@ struct LinearL1Problem
     ftarget::Float64
 end
 
+#incluir funções de teste
+
 function readlasso(filename)
     vars = matread(filename)
     return LinearL1Problem(vars["A"], vec(vars["b"]), vars["lambda"], vars["ftarget"])
@@ -18,6 +20,7 @@ function readlogreg(filename)
     vars = matread(filename)
     return LinearL1Problem(vars["A"], vec(vars["b"]), vars["lambdalog"], vars["flogtarget"])
 end
+
 #Busca exata
 function cauchystepsize(x, d, fval, ∇f, f, gradf)
     α = norm(d)^2
@@ -26,7 +29,7 @@ function cauchystepsize(x, d, fval, ∇f, f, gradf)
 end
 #Armijo
 
-#Seccção áurea
+#Secção áurea
 
 #Inexata com interpolação
 
