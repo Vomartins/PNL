@@ -42,7 +42,8 @@ function unimodal(ρ,ϕ)
 end
 
 #Secção áurea
-function secao_aurea(ϕ,ϵ,ρ)
+function secao_aurea(x,d,f,∇f,ϵ,ρ)
+    ϕ(t) = f(x+t*d)
     a,b = unimodal(ρ,ϕ)
     φ = MathConstants.golden
     θ = 1/φ
@@ -67,7 +68,7 @@ function armijo(x,d,f,∇f,η,γ)
     α = 1
     ϕ(t) = f(x+t*d)
     dϕ(t) = ∇f(x+t*d)
-    while ϕ(α) > ϕ(0) + η*α*(dϕ(0)'*d)
+    while ϕ(α) > ϕ(0) + η*α*dot(dϕ(0),d)
         α = γ*α
     end
     return α
@@ -78,14 +79,15 @@ end
 #Método do gradiente descendente 
 function grad_descent(x0, f, gradf, stepsize; ϵ=1.0e-5, ftarget=-1.0e20, max_iter=2000)
     x = copy(x0)
-    fval, ∇f = gradf(x)
+    fval = f(x)
+    ∇f = gradf(x)
     histf = [fval]
     hist∇f = [norm(∇f, Inf)]
     iter = 0
     while hist∇f[end] > ϵ && fval > ftarget && iter < max_iter
-        d = -∇f
-        α = stepsize(x, d, fval, ∇f, f, gradf)
-        @. x = x + α * d
+        d = -gradf(x)
+        α = stepsize(x, d, f, gradf)
+        x = x + α * d
         fval, ∇f = gradf(x)
         iter += 1
         append!(histf, fval)
