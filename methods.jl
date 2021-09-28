@@ -27,9 +27,43 @@ function cauchystepsize(x, d, fval, ∇f, f, gradf)
     α /= dot(d, data.A' * (data.A * d) + λ*d)
     return α
 end
-#Armijo
+
+#Calcula o intervalo unimodal de ϕ
+function unimodal(ρ,ϕ)
+    a = 0
+    s = ρ
+    b = 2*ρ
+    while ϕ(b) < ϕ(s)
+        a = s
+        s = b
+        b *= 2
+    end
+    return a,b    
+end
 
 #Secção áurea
+function secao_aurea(ϕ,ϵ,ρ)
+    a,b = unimodal(ρ,ϕ)
+    φ = MathConstants.golden
+    θ = 1/φ
+    v = a + θ*(b-a)
+    u = a + (1-θ)*(b-a)
+    while b-a > ϵ
+        if ϕ(u) < ϕ(v)
+            b = v
+            v = u
+            u = a + (1-θ)*(b-a)
+        else
+            a = u
+            u = v
+            v = a + θ*(b-a)
+        end
+    end
+    return (u+v)/2
+end
+
+#Armijo
+
 
 #Inexata com interpolação
 
