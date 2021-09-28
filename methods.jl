@@ -63,7 +63,15 @@ function secao_aurea(ϕ,ϵ,ρ)
 end
 
 #Armijo
-
+function armijo(x,d,f,∇f,η,γ)
+    α = 1
+    ϕ(t) = f(x+t*d)
+    dϕ(t) = ∇f(x+t*d)
+    while ϕ(α) > ϕ(0) + η*α*(dϕ(0)'*d)
+        α = γ*α
+    end
+    return α
+end
 
 #Inexata com interpolação
 
