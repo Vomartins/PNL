@@ -3,12 +3,27 @@ using LinearAlgebra
 using SparseArrays
 using ForwardDiff
 
+struct problems
+    f::Function
+    ∇f::Function
+    x₀::Vector{Float64}
+    minimizers::Dict{Float64,Vector{Float64}}
+end
+
 #incluir funções de teste
 function teste1()
     f(x) = 0.5*(x[1]-2)^2+(x[2]-1)^2
     ∇f(x) = [(x[1]-2),2*(x[2]-1)]
-    return f, ∇f
+    x₀ = [2.0, 2.0]
+    minimizers = Dict()
+    minimizers[0.0] = [2.0, 1.0]
+    return problems(f, ∇f, x₀, minimizers)
 end
+
+function Rosenbrock()
+    
+end
+
 
 #Busca exata
 function cauchystepsize(x, d, f, ∇f)
