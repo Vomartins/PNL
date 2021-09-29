@@ -29,6 +29,21 @@ function Rosenbrock()
     return problems(f, ∇f, x₀, minimizers)
 end
 
+function Gaussian()
+    y = [0.0009, 0.0044, 0.0175, 0.0540, 0.1295, 0.2420, 0.3521, 0.3989, 0.3521, 0.2420, 0.1295, 0.0540, 0.0175, 0.0044, 0.0009]
+    t(i) = (8-i)/2
+    p(x,i) = (x[1]*exp((-x[2]*(t(i)-x[3])^2)/2)-y[i])^2
+    f(x) = sum(i -> p(x,i),1:15)
+    dp₁(x,i) = 2*exp((-x[2]*(t(i)-x[3])^2)/2)
+    dp₂(x,i) = (-x[1]*(t(i)-x[3])^2)*exp((-x[2]*(t(i)-x[3])^2)/2)
+    dp₃(x,i) = (2*x[1]*x[2]*(t(i)-x[3]))*exp((-x[2]*(t(i)-x[3])^2)/2)
+    ∇f(x) = [sum(i -> dp₁(x,i),1:15), sum(i -> dp₂(x,i),1:15), sum(i -> dp₃(x,i),1:15)]
+    x₀ = [0.4, 1.0, 0.0]
+    minimizers = Dict()
+    minimizers[1.12793*(10^(-8))] = [0.0]
+    return problems(f, ∇f, x₀, minimizers)
+end
+
 
 #Busca exata
 function cauchystepsize(x, d, f, ∇f)
@@ -87,6 +102,7 @@ end
 function interpolacao(x, d, f, ∇f, η, α)
     ϕ(t) = f(x + t*d)
     dϕ(t) = ∇f(x+t*d)
+    α₀ = α
     if ϕ(α) <= ϕ(0) + η*α*dot(dϕ(0),d)
         return α
     end
@@ -94,7 +110,6 @@ function interpolacao(x, d, f, ∇f, η, α)
     if ϕ(α) <= ϕ(0) + η*α*dot(dϕ(0),d)
         return α
     end
-    α₀ = α
     while (ϕ(α) > ϕ(0) + η*α*dot(dϕ(0),d))
         β = 1/((α₀^2)*(α^2)*(α-α₀))
         M = [α₀^2 -α^2; -α₀^3 α^3]
@@ -121,7 +136,8 @@ function grad_descent(x0, f, gradf, stepsize; ϵ=1.0e-5, ftarget=-1.0e20, max_it
         d = -gradf(x)
         α = stepsize(x, d, f, gradf)
         x = x + α * d
-        fval, ∇f = gradf(x)
+        fval = f(x)
+        ∇f = gradf(x)
         iter += 1
         append!(histf, fval)
         append!(hist∇f, norm(∇f, Inf))
