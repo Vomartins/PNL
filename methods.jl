@@ -21,7 +21,12 @@ function teste1()
 end
 
 function Rosenbrock()
-    
+    f(x) = (10*(x[2]-x[1]^2))^2 + (1-x[1])^2
+    ∇f(x) = [-40*(x[2]-x[1]^2)*x[1]-2(1-x[1]),20*(x[2]-x[1]^2)]
+    x₀ = [-1.2,1.0]
+    minimizers = Dict()
+    minimizers[0.0] = [1.0,1.0]    
+    return problems(f, ∇f, x₀, minimizers)
 end
 
 
@@ -121,5 +126,5 @@ function grad_descent(x0, f, gradf, stepsize; ϵ=1.0e-5, ftarget=-1.0e20, max_it
         append!(histf, fval)
         append!(hist∇f, norm(∇f, Inf))
     end
-    return x, fval, ∇f, histf, hist∇f
+    return x, fval, ∇f, histf, hist∇f, iter
 end
