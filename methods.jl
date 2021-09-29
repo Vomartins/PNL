@@ -74,7 +74,31 @@ function armijo(x,d,f,∇f,η,γ)
     return α
 end
 
-#Inexata com interpolação
+#Inexata com interpolacao
+function interpolacao(x, d, f, ∇f, η, α)
+    ϕ(t) = f(x + t*d)
+    dϕ(t) = ∇f(x+t*d)
+    if ϕ(α) <= ϕ(0) + η*α*dot(dϕ(0),d)
+        return α
+    end
+    α = -(dot(dϕ(0),d)*α^2)/(2*(ϕ(α) - ϕ(0) - (dot(dϕ(0),d))*α))
+    if ϕ(α) <= ϕ(0) + η*α*dot(dϕ(0),d)
+        return α
+    end
+    α₀ = α
+    while (ϕ(α) > ϕ(0) + η*α*dot(dϕ(0),d))
+        β = 1/((α₀^2)*(α^2)*(α-α₀))
+        M = [α₀^2 -α^2; -α₀^3 α^3]
+        v = [ϕ(α) - ϕ(0) - dot(dϕ(0),d)*α; ϕ(α₀) - ϕ(0) - dot(dϕ(0),d)*α₀]
+        v = β*(M*v)
+        a = v[1]
+        b = v[2]
+        raiz = sqrt(b^2 - 3*a*dot(dϕ(0),d))
+        α₀ = α
+        α = (-b + raiz)/(3*a)
+    end
+    return α
+end
 
 #Método do gradiente descendente 
 function grad_descent(x0, f, gradf, stepsize; ϵ=1.0e-5, ftarget=-1.0e20, max_iter=2000)
