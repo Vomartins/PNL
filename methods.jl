@@ -1,30 +1,19 @@
 using MAT
 using LinearAlgebra
 using SparseArrays
-
-struct LinearL1Problem
-    A::SparseMatrixCSC{Float64}
-    b::Vector{Float64}
-    λ::Float64
-    ftarget::Float64
-end
+using ForwardDiff
 
 #incluir funções de teste
-
-function readlasso(filename)
-    vars = matread(filename)
-    return LinearL1Problem(vars["A"], vec(vars["b"]), vars["lambda"], vars["ftarget"])
-end
-
-function readlogreg(filename)
-    vars = matread(filename)
-    return LinearL1Problem(vars["A"], vec(vars["b"]), vars["lambdalog"], vars["flogtarget"])
+function teste1()
+    f(x) = 0.5*(x[1]-2)^2+(x[2]-1)^2
+    ∇f(x) = [(x[1]-2),2*(x[2]-1)]
+    return f, ∇f
 end
 
 #Busca exata
-function cauchystepsize(x, d, fval, ∇f, f, gradf)
+function cauchystepsize(x, d, f, ∇f)
     α = norm(d)^2
-    α /= dot(d, data.A' * (data.A * d) + λ*d)
+    α /= dot(d, ForwardDiff.hessian(f,x)*d)
     return α
 end
 
