@@ -68,6 +68,27 @@ function Gaussian()
     return problems(f, ∇f, x₀, Ε, max_iter, minimizers, parameters)
 end
 
+#função #26
+function trigonometric(n::Int64)
+    m = n
+    p(x,i) = (n - sum(j -> cos(x[j]), 1:m) + i*(1 - cos(x[i])) - sin(x[i]))^2 
+    dp(x,i) = sin(x[i]) + i*sin(x[i]) - cos(x[i])
+    f(x) = sum(i -> p(x,i), 1:m)
+    ∇f(x) = [dp(x,i) for i in 1:n]
+    x₀= (1/n)*ones(n)
+    E = 1.0e-06
+    max_iter = 3000
+    minimizers = Dict()
+    minimizers[0.0] = [nothing]
+    parameters = Dict()
+    parameters["η"] = 0.8
+    parameters["γ"] = 0.8
+    parameters["ϵ"] = 10^(-2)
+    parameters["ρ"] = 0.25
+    parameters["β"] = 1.0e-06
+    parameters["α"] = 1
+    return problems(f, ∇f, x₀, E, max_iter, minimizers, parameters)
+end
 
 #Busca exata
 function cauchystepsize(x, d, f, ∇f)
