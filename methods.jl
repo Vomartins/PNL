@@ -81,10 +81,11 @@ end
 #função #26
 function trigonometric(n::Int64)
     m = n
-    p(x,i) = (n - sum(j -> cos(x[j]), 1:m) + i*(1 - cos(x[i])) - sin(x[i]))^2
+    p(x,i) = (n - sum(j -> cos(x[j]), 1:m) + i*(1 - cos(x[i])) - sin(x[i]))
+    f(x) = sum(i -> p(x,i)^2, 1:m)
     dq(x,i,k) = sin(x[k])+delta(i,k)*(i*sin(x[i])-cos(x[i]))
     dp(x,k) = 2*sum(i -> p(x,i)*dq(x,i,k), 1:n)
-    f(x) = sum(i -> p(x,i), 1:m)
+    
     ∇f(x) = [dp(x,k) for k in 1:n]
     x₀= (1/n)*ones(n)
     E = 1.0e-06
@@ -94,8 +95,8 @@ function trigonometric(n::Int64)
     parameters = Dict()
     parameters["η"] = 0.4
     parameters["γ"] = 0.8
-    parameters["ϵ"] = 10^(-5)
-    parameters["ρ"] = 10
+    parameters["ϵ"] = 10^(-3)
+    parameters["ρ"] = 1
     parameters["β"] = 1.0e-06
     parameters["α"] = 1
     return problems(f, ∇f, x₀, E, max_iter, minimizers, parameters)
