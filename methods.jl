@@ -13,6 +13,14 @@ struct problems
     parameters::Dict{String,Float64}
 end
 
+function delta(i,k)
+    if i == k
+        return 1
+    else
+        return 0
+    end
+end
+
 #incluir funções de teste
 function teste1()
     f(x) = 0.5*(x[1]-2)^2+(x[2]-1)^2
@@ -26,6 +34,7 @@ function teste1()
     return problems(f, ∇f, x₀, Ε, max_iter, minimizers, parameters)
 end
 
+#Função #01
 function Rosenbrock()
     f(x) = (10*(x[2]-x[1]^2))^2 + (1-x[1])^2
     ∇f(x) = [-40*(x[2]-x[1]^2)*x[1]-2(1-x[1]),20*(x[2]-x[1]^2)]
@@ -44,6 +53,7 @@ function Rosenbrock()
     return problems(f, ∇f, x₀, Ε, max_iter, minimizers, parameters)
 end
 
+#função #09
 function Gaussian()
     y = [0.0009, 0.0044, 0.0175, 0.0540, 0.1295, 0.2420, 0.3521, 0.3989, 0.3521, 0.2420, 0.1295, 0.0540, 0.0175, 0.0044, 0.0009]
     t(i) = (8-i)/2
@@ -71,20 +81,21 @@ end
 #função #26
 function trigonometric(n::Int64)
     m = n
-    p(x,i) = (n - sum(j -> cos(x[j]), 1:m) + i*(1 - cos(x[i])) - sin(x[i]))^2 
-    dp(x,i) = sin(x[i]) + i*sin(x[i]) - cos(x[i])
+    p(x,i) = (n - sum(j -> cos(x[j]), 1:m) + i*(1 - cos(x[i])) - sin(x[i]))^2
+    dq(x,i,k) = sin(x[k])+delta(i,k)*(i*sin(x[i])-cos(x[i]))
+    dp(x,k) = 2*sum(i -> p(x,i)*dq(x,i,k), 1:n)
     f(x) = sum(i -> p(x,i), 1:m)
-    ∇f(x) = [dp(x,i) for i in 1:n]
+    ∇f(x) = [dp(x,k) for k in 1:n]
     x₀= (1/n)*ones(n)
     E = 1.0e-06
     max_iter = 3000
     minimizers = Dict()
     minimizers[0.0] = [nothing]
     parameters = Dict()
-    parameters["η"] = 0.8
+    parameters["η"] = 0.4
     parameters["γ"] = 0.8
-    parameters["ϵ"] = 10^(-2)
-    parameters["ρ"] = 0.25
+    parameters["ϵ"] = 10^(-5)
+    parameters["ρ"] = 10
     parameters["β"] = 1.0e-06
     parameters["α"] = 1
     return problems(f, ∇f, x₀, E, max_iter, minimizers, parameters)
