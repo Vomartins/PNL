@@ -7,7 +7,10 @@ struct problems
     f::Function
     ∇f::Function
     x₀::Vector{Float64}
-    minimizers::Dict{Float64,Vector{Float64}}
+    Ε::Float64
+    max_iter::Int64
+    minimizers::Dict{Float64,Vector}
+    parameters::Dict{String,Float64}
 end
 
 #incluir funções de teste
@@ -15,18 +18,30 @@ function teste1()
     f(x) = 0.5*(x[1]-2)^2+(x[2]-1)^2
     ∇f(x) = [(x[1]-2),2*(x[2]-1)]
     x₀ = [2.0, 2.0]
+    Ε = 1.0e-5
+    max_iter = 2000
     minimizers = Dict()
     minimizers[0.0] = [2.0, 1.0]
-    return problems(f, ∇f, x₀, minimizers)
+    parameters = Dict()
+    return problems(f, ∇f, x₀, Ε, max_iter, minimizers, parameters)
 end
 
 function Rosenbrock()
     f(x) = (10*(x[2]-x[1]^2))^2 + (1-x[1])^2
     ∇f(x) = [-40*(x[2]-x[1]^2)*x[1]-2(1-x[1]),20*(x[2]-x[1]^2)]
     x₀ = [-1.2,1.0]
+    Ε = 1.0e-5
+    max_iter = 2000
     minimizers = Dict()
-    minimizers[0.0] = [1.0,1.0]    
-    return problems(f, ∇f, x₀, minimizers)
+    minimizers[0.0] = [1.0, 1.0] 
+    parameters = Dict()
+    parameters["η"] = 0.25
+    parameters["γ"] = 0.7
+    parameters["ϵ"] = 10^(-3)
+    parameters["ρ"] = 1
+    parameters["β"] = 0.25
+    parameters["α"] = 1    
+    return problems(f, ∇f, x₀, Ε, max_iter, minimizers, parameters)
 end
 
 function Gaussian()
@@ -34,14 +49,23 @@ function Gaussian()
     t(i) = (8-i)/2
     p(x,i) = (x[1]*exp((-x[2]*(t(i)-x[3])^2)/2)-y[i])^2
     f(x) = sum(i -> p(x,i),1:15)
-    dp₁(x,i) = 2*exp((-x[2]*(t(i)-x[3])^2)/2)
-    dp₂(x,i) = (-x[1]*(t(i)-x[3])^2)*exp((-x[2]*(t(i)-x[3])^2)/2)
-    dp₃(x,i) = (2*x[1]*x[2]*(t(i)-x[3]))*exp((-x[2]*(t(i)-x[3])^2)/2)
+    dp₁(x,i) = 2*exp((-x[2]*(t(i)-x[3])^2)/2)*p(x,i)
+    dp₂(x,i) = (-x[1]*(t(i)-x[3])^2)*exp((-x[2]*(t(i)-x[3])^2)/2)*p(x,i)
+    dp₃(x,i) = (2*x[1]*x[2]*(t(i)-x[3]))*exp((-x[2]*(t(i)-x[3])^2)/2)*p(x,i)
     ∇f(x) = [sum(i -> dp₁(x,i),1:15), sum(i -> dp₂(x,i),1:15), sum(i -> dp₃(x,i),1:15)]
     x₀ = [0.4, 1.0, 0.0]
+    Ε = 1.0e-10
+    max_iter = 10000
     minimizers = Dict()
-    minimizers[1.12793*(10^(-8))] = [0.0]
-    return problems(f, ∇f, x₀, minimizers)
+    minimizers[1.12793*(10^(-8))] = [nothing]
+    parameters = Dict()
+    parameters["η"] = 0.4
+    parameters["γ"] = 0.8
+    parameters["ϵ"] = 10^(-5)
+    parameters["ρ"] = 1
+    parameters["β"] = 0.4
+    parameters["α"] = 1    
+    return problems(f, ∇f, x₀, Ε, max_iter, minimizers, parameters)
 end
 
 
