@@ -200,3 +200,34 @@ function grad_descent(x0, f, gradf, stepsize; ϵ=1.0e-5, ftarget=-1.0e20, max_it
     end
     return x, fval, ∇f, histf, hist∇f, iter
 end
+
+#Método do gradiente descendente com ruído
+function noise_grad(x0, f, gradf, stepsize; ϵ=1.0e-5, ftarget=-1.0e20, max_iter=2000)
+    x = copy(x0)
+    fval = f(x)
+    ∇f = gradf(x)
+    histf = [fval]
+    hist∇f = [norm(∇f, Inf)]
+    iter = 0
+    while hist∇f[end] > ϵ && fval > ftarget && iter < max_iter
+        d = -gradf(x)
+        α = stepsize(x, d, f, gradf)
+        if iter >3
+            if abs(fval - histf[end-1]) < ϵ
+                ξ = -1 .+ (2*rand(length(x)))
+                ξ = norm(d,2)*ξ/norm(ξ,2)
+                x = x + α*(d+ξ)
+            else
+                x = x + α * d
+            end 
+        else
+            x = x + α * d
+        end
+        fval = f(x)
+        ∇f = gradf(x)
+        iter += 1
+        append!(histf, fval)
+        append!(hist∇f, norm(∇f, Inf))
+    end
+    return x, fval, ∇f, histf, hist∇f, iter
+end
