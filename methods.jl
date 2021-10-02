@@ -101,6 +101,31 @@ function trigonometric(n::Int64)
     return problems(f, ∇f, x₀, E, max_iter, minimizers, parameters)
 end
 
+#função #33
+function linear_rank1(Int::n, Int::m)
+    if m<n
+        error("É necessário que m ≥ n")
+        return nothing
+    end
+    p(x,i) = i*( sum(j->j*x[j], 1:n)) - 1
+    f(x) = sum(i-> p(x,i)^2 ,1:m)
+    dp(x,i) = 2*sum(j-> j*p(x,i), j=1:m) 
+    ∇f(x) = [i*dp(x,i) for i in 1:m]
+    x₀= ones(n)
+    E = 1.0e-06
+    max_iter = 3000
+    minimizers = Dict()
+    minimizers[0.0] = [nothing]
+    parameters = Dict()
+    parameters["η"] = 0.4
+    parameters["γ"] = 0.8
+    parameters["ϵ"] = 10^(-5)
+    parameters["ρ"] = 1
+    parameters["β"] = 1.0e-06
+    parameters["α"] = 1
+    return problems(f, ∇f, x₀, E, max_iter, minimizers, parameters)
+end
+
 #Busca exata
 function cauchystepsize(x, d, f, ∇f)
     α = norm(d)^2
