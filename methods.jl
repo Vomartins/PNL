@@ -2,6 +2,7 @@ using MAT
 using LinearAlgebra
 using SparseArrays
 using ForwardDiff
+using IterTools
 
 struct problems
     f::Function
@@ -33,6 +34,12 @@ function teste1()
     minimizers = Dict()
     minimizers[0.0] = [2.0, 1.0]
     parameters = Dict()
+    parameters["η"] = 0.25
+    parameters["γ"] = 0.7
+    parameters["ϵ"] = 10^(-3)
+    parameters["ρ"] = 1
+    parameters["β"] = 0.25
+    parameters["α"] = 1    
     return problems(f, ∇f, x₀, Ε, max_iter, minimizers, parameters)
 end
 
@@ -112,7 +119,7 @@ function trigonometric(n::Int64)
 end
 
 #função #29
-function discrete_integral(Int::n)
+function discrete_integral(n::Int64)
     m = n
     h = 1/(n+1)
     t(i) = h*i
@@ -125,6 +132,7 @@ function discrete_integral(Int::n)
             return t(k)*(1-t(i))
         else
             return t(i)*(1-t(k))
+        end
     end
         
     dq(x,i,k) = delta(i,k)+(3*h*(x[k]+t[k]+1)^2)*q(x,i,k)/2 
@@ -147,7 +155,7 @@ function discrete_integral(Int::n)
 end
 
 #função #33
-function linear_rank1(Int::n, Int::m)
+function linear_rank1(n::Int64, m::Int64)
     if m<n
         error("É necessário que m ≥ n")
         return nothing
@@ -253,6 +261,34 @@ function interpolacao(x, d, f, ∇f, η, α)
     return α
 end
 
+#Método para avaliar as estratégias de stepsize
+function avaliation(E, R, estrategia, x₀, f, ∇f, Ε, N)
+    P = product(E,R) #função do IterTools
+    Erro = Dict()
+    for p in P
+        stepsize(x,d,f,∇f) = estrategia(x,d,f,∇f,p[1],p[2])
+        Erro[p] = abs(grad_descent(x₀,f,∇f,stepsize,ϵ=Ε,max_iter=N)[2])
+    end
+    return Erro
+end
+
+#Encontra o valor mínimo dos valores do dicionário e retorna o minimo com a chave correspondente
+function find_min_dict(d)
+    
+    K = collect(keys(Erro))
+    minval = d[K[1]]
+    minkey = K[1]
+
+    for key in keys(d)
+        if d[key] < minval
+            minkey = key
+            minval = d[key]
+        end
+    end
+
+    return minkey, minval
+end
+
 #Método do gradiente descendente 
 function grad_descent(x0, f, gradf, stepsize; ϵ=1.0e-5, ftarget=-1.0e20, max_iter=2000)
     x = copy(x0)
@@ -285,7 +321,7 @@ function noise_grad(x0, f, gradf, stepsize; ϵ=1.0e-5, ftarget=-1.0e20, max_iter
     while hist∇f[end] > ϵ && fval > ftarget && iter < max_iter
         d = -gradf(x)
         α = stepsize(x, d, f, gradf)
-        if iter >3
+        if iter > 3
             if abs(fval - histf[end-1]) < ϵ
                 ξ = -1 .+ (2*rand(length(x)))
                 ξ = norm(d,2)*ξ/norm(ξ,2)
