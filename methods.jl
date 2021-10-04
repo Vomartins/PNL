@@ -24,7 +24,9 @@ end
 #incluir funções de teste
 function teste1()
     f(x) = 0.5*(x[1]-2)^2+(x[2]-1)^2
+    
     ∇f(x) = [(x[1]-2),2*(x[2]-1)]
+    
     x₀ = [2.0, 2.0]
     Ε = 1.0e-5
     max_iter = 2000
@@ -37,7 +39,9 @@ end
 #Função #01
 function Rosenbrock()
     f(x) = (10*(x[2]-x[1]^2))^2 + (1-x[1])^2
+    
     ∇f(x) = [-40*(x[2]-x[1]^2)*x[1]-2(1-x[1]),20*(x[2]-x[1]^2)]
+    
     x₀ = [-1.2,1.0]
     Ε = 1.0e-5
     max_iter = 2000
@@ -57,12 +61,15 @@ end
 function Gaussian()
     y = [0.0009, 0.0044, 0.0175, 0.0540, 0.1295, 0.2420, 0.3521, 0.3989, 0.3521, 0.2420, 0.1295, 0.0540, 0.0175, 0.0044, 0.0009]
     t(i) = (8-i)/2
+    
     p(x,i) = (x[1]*exp((-x[2]*(t(i)-x[3])^2)/2)-y[i])^2
     f(x) = sum(i -> p(x,i),1:15)
+    
     dp₁(x,i) = 2*exp((-x[2]*(t(i)-x[3])^2)/2)*p(x,i)
     dp₂(x,i) = (-x[1]*(t(i)-x[3])^2)*exp((-x[2]*(t(i)-x[3])^2)/2)*p(x,i)
     dp₃(x,i) = (2*x[1]*x[2]*(t(i)-x[3]))*exp((-x[2]*(t(i)-x[3])^2)/2)*p(x,i)
     ∇f(x) = [sum(i -> dp₁(x,i),1:15), sum(i -> dp₂(x,i),1:15), sum(i -> dp₃(x,i),1:15)]
+    
     x₀ = [0.4, 1.0, 0.0]
     Ε = 1.0e-10
     max_iter = 10000
@@ -81,12 +88,50 @@ end
 #função #26
 function trigonometric(n::Int64)
     m = n
+    
     p(x,i) = (n - sum(j -> cos(x[j]), 1:m) + i*(1 - cos(x[i])) - sin(x[i]))
     f(x) = sum(i -> p(x,i)^2, 1:m)
+    
     dq(x,i,k) = sin(x[k])+delta(i,k)*(i*sin(x[i])-cos(x[i]))
     dp(x,k) = 2*sum(i -> p(x,i)*dq(x,i,k), 1:n)
     ∇f(x) = [dp(x,k) for k in 1:n]
+    
     x₀= (1/n)*ones(n)
+    E = 1.0e-06
+    max_iter = 3000
+    minimizers = Dict()
+    minimizers[0.0] = [nothing]
+    parameters = Dict()
+    parameters["η"] = 0.4
+    parameters["γ"] = 0.8
+    parameters["ϵ"] = 10^(-5)
+    parameters["ρ"] = 1
+    parameters["β"] = 1.0e-06
+    parameters["α"] = 1
+    return problems(f, ∇f, x₀, E, max_iter, minimizers, parameters)
+end
+
+#função #29
+function discrete_integral(Int::n)
+    m = n
+    h = 1/(n+1)
+    t(i) = h*i
+    
+    p(x,i) = x[i] + (h/2)*((1-t(i))*sum(j -> t(j)*(x[j]+t(j)+1)^3,j=1:i)+t(i)*sum(j -> (1-t(j))*(x[j]+t(j)+1)^3,j=i+1:n))
+    f(x) = sum(i-> p(x,i)^2 ,1:m)
+    
+    function q(x,i,k)
+        if k <= i
+            return t(k)*(1-t(i))
+        else
+            return t(i)*(1-t(k))
+    end
+        
+    dq(x,i,k) = delta(i,k)+(3*h*(x[k]+t[k]+1)^2)*q(x,i,k)/2 
+    dp(x,k) = 2*sum(i -> p(x,i)*dq(x,i,k), i=1:m) 
+    ∇f(x) = [dp(x,k) for k in 1:m]
+        
+    x₀= [t(i)*(t(i)-1) for i in i:n]
     E = 1.0e-06
     max_iter = 3000
     minimizers = Dict()
@@ -107,10 +152,13 @@ function linear_rank1(Int::n, Int::m)
         error("É necessário que m ≥ n")
         return nothing
     end
-    p(x,i) = i*( sum(j->j*x[j], 1:n)) - 1
-    f(x) = sum(i-> p(x,i)^2 ,1:m)
-    dp(x,i) = 2*sum(j-> j*p(x,i), j=1:m) 
-    ∇f(x) = [i*dp(x,i) for i in 1:m]
+        
+    p(x,i) = i*(sum(j->j*x[j], 1:n)) - 1
+    f(x) = sum(i -> p(x,i)^2 ,1:m)
+        
+    dp(x,i) = sum(j-> 2*i*j*p(x,j), j=1:m) 
+    ∇f(x) = [dp(x,i) for i in 1:m]
+        
     x₀= ones(n)
     E = 1.0e-06
     max_iter = 3000
