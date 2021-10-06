@@ -8,9 +8,9 @@ struct problems
     f::Function
     ∇f::Function
     x₀::Vector{Float64}
-    Ε::Float64
+    T::Float64
     max_iter::Int64
-    minimizers::Dict{Float64,Vector}
+    minima::Float64
     parameters::Dict{String,Float64}
 end
 
@@ -31,8 +31,7 @@ function teste1()
     x₀ = [2.0, 2.0]
     Ε = 1.0e-5
     max_iter = 2000
-    minimizers = Dict()
-    minimizers[0.0] = [2.0, 1.0]
+    minima = 0.0
     parameters = Dict()
     parameters["η"] = 0.25
     parameters["γ"] = 0.7
@@ -50,10 +49,9 @@ function Rosenbrock()
     ∇f(x) = [-40*(x[2]-x[1]^2)*x[1]-2(1-x[1]),20*(x[2]-x[1]^2)]
     
     x₀ = [-1.2,1.0]
-    Ε = 1.0e-5
+    T = 1.0e-5
     max_iter = 2000
-    minimizers = Dict()
-    minimizers[0.0] = [1.0, 1.0] 
+    minima = 0.0 
     parameters = Dict()
     parameters["η"] = 0.25
     parameters["γ"] = 0.7
@@ -61,7 +59,7 @@ function Rosenbrock()
     parameters["ρ"] = 1
     parameters["β"] = 0.25
     parameters["α"] = 1    
-    return problems(f, ∇f, x₀, Ε, max_iter, minimizers, parameters)
+    return problems(f, ∇f, x₀, T, max_iter, minimizers, parameters)
 end
 
 #função #09
@@ -80,8 +78,7 @@ function Gaussian()
     x₀ = [0.4, 1.0, 0.0]
     Ε = 1.0e-10
     max_iter = 10000
-    minimizers = Dict()
-    minimizers[1.12793*(10^(-8))] = [nothing]
+    minimizers = 1.12793*(10^(-8))
     parameters = Dict()
     parameters["η"] = 0.4
     parameters["γ"] = 0.8
@@ -106,8 +103,7 @@ function trigonometric(n::Int64)
     x₀= (1/n)*ones(n)
     E = 1.0e-06
     max_iter = 3000
-    minimizers = Dict()
-    minimizers[0.0] = [nothing]
+    minima = 0.0
     parameters = Dict()
     parameters["η"] = 0.4
     parameters["γ"] = 0.8
@@ -143,7 +139,7 @@ function discrete_integral(n::Int64)
     E = 1.0e-06
     max_iter = 3000
     minimizers = Dict()
-    minimizers[0.0] = [nothing]
+    minima = 0.0
     parameters = Dict()
     parameters["η"] = 0.4
     parameters["γ"] = 0.8
@@ -170,8 +166,7 @@ function linear_rank1(n::Int64, m::Int64)
     x₀= ones(n)
     E = 1.0e-06
     max_iter = 3000
-    minimizers = Dict()
-    minimizers[0.0] = [nothing]
+    minima = 0.0
     parameters = Dict()
     parameters["η"] = 0.4
     parameters["γ"] = 0.8
@@ -183,9 +178,9 @@ function linear_rank1(n::Int64, m::Int64)
 end
 
 #Busca exata
-function cauchystepsize(x, d, f, ∇f)
+function cauchystepsize(x, d, p::problems)
     α = norm(d)^2
-    α /= dot(d, ForwardDiff.hessian(f,x)*d)
+    α /= dot(d, ForwardDiff.hessian(p.f,x)*d)
     return α
 end
 
@@ -203,8 +198,10 @@ function unimodal(ρ,ϕ)
 end
 
 #Secção áurea
-function secao_aurea(x,d,f,∇f,ϵ,ρ)
-    ϕ(t) = f(x+t*d)
+function secao_aurea(x,d,p::problems)
+    ρ = p.parameters["ρ"]
+    ϵ = p.parameters["ϵ"]
+    ϕ(t) = p.f(x+t*d)
     a,b = unimodal(ρ,ϕ)
     φ = MathConstants.golden
     θ = 1/φ
@@ -225,10 +222,12 @@ function secao_aurea(x,d,f,∇f,ϵ,ρ)
 end
 
 #Armijo
-function armijo(x,d,f,∇f,η,γ)
+function armijo(x,d,p::problems)
+    η = p.parameters["η"]
+    γ = p.parameters["γ"]
     α = 1
-    ϕ(t) = f(x+t*d)
-    dϕ(t) = ∇f(x+t*d)
+    ϕ(t) = p.f(x+t*d)
+    dϕ(t) = p.∇f(x+t*d) 
     while ϕ(α) > ϕ(0) + η*α*dot(dϕ(0),d)
         α = γ*α
     end
@@ -236,18 +235,20 @@ function armijo(x,d,f,∇f,η,γ)
 end
 
 #Inexata com interpolacao
-function interpolacao(x, d, f, ∇f, η, α)
-    ϕ(t) = f(x + t*d)
-    dϕ(t) = ∇f(x+t*d)
+function interpolacao(x, d, p::problems)
+    β = p.parameters["β"]
+    α = p.parameters["α"]
+    ϕ(t) = p.f(x + t*d)
+    dϕ(t) = p.∇f(x+t*d)
     α₀ = α
-    if ϕ(α) <= ϕ(0) + η*α*dot(dϕ(0),d)
+    if ϕ(α) <= ϕ(0) + β*α*dot(dϕ(0),d)
         return α
     end
     α = -(dot(dϕ(0),d)*α^2)/(2*(ϕ(α) - ϕ(0) - (dot(dϕ(0),d))*α))
-    if ϕ(α) <= ϕ(0) + η*α*dot(dϕ(0),d)
+    if ϕ(α) <= ϕ(0) + β*α*dot(dϕ(0),d)
         return α
     end
-    while (ϕ(α) > ϕ(0) + η*α*dot(dϕ(0),d))
+    while (ϕ(α) > ϕ(0) + β*α*dot(dϕ(0),d))
         β = 1/((α₀^2)*(α^2)*(α-α₀))
         M = [α₀^2 -α^2; -α₀^3 α^3]
         v = [ϕ(α) - ϕ(0) - dot(dϕ(0),d)*α; ϕ(α₀) - ϕ(0) - dot(dϕ(0),d)*α₀]
@@ -262,14 +263,33 @@ function interpolacao(x, d, f, ∇f, η, α)
 end
 
 #Método para avaliar as estratégias de stepsize
-function avaliation(E, R, estrategia, x₀, f, ∇f, Ε, N)
+function grid_search(E, R, estrategia, p::problems)
     P = product(E,R) #função do IterTools
     Erro = Dict()
-    for p in P
-        stepsize(x,d,f,∇f) = estrategia(x,d,f,∇f,p[1],p[2])
-        Erro[p] = abs(grad_descent(x₀,f,∇f,stepsize,ϵ=Ε,max_iter=N)[2])
+    if estrategia == armijo
+        for ρ in P
+            p.parameters["η"] = ρ[1]
+            p.parameters["γ"] = ρ[2]
+            Erro[ρ] = abs(grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)[2]-p.minima)
+        end
+        return Erro
+    elseif estrategia == interpolacao
+        for ρ in P
+            p.parameters["β"] = ρ[1]
+            p.parameters["α"] = ρ[2]
+            Erro[ρ] = abs(grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)[2]-p.minima)
+        end
+        return Erro
+    elseif estrategia == secao_aurea
+        for ρ in P
+            p.parameters["ϵ"] = ρ[1]
+            p.parameters["ρ"] = ρ[2]
+            Erro[ρ] = abs(grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)[2]-p.minima)
+        end
+        return Erro
+    else
+       return "Estratégia inválida!"
     end
-    return Erro
 end
 
 #Encontra o valor mínimo dos valores do dicionário e retorna o minimo com a chave correspondente
@@ -290,19 +310,19 @@ function find_min_dict(d)
 end
 
 #Método do gradiente descendente 
-function grad_descent(x0, f, gradf, stepsize; ϵ=1.0e-5, ftarget=-1.0e20, max_iter=2000)
-    x = copy(x0)
-    fval = f(x)
-    ∇f = gradf(x)
+function grad_descent(p::problems, stepsize; ϵ=1.0e-5, ftarget=-1.0e20, max_iter=2000)
+    x = copy(p.x₀)
+    fval = p.f(x)
+    ∇f = p.∇f(x)
     histf = [fval]
     hist∇f = [norm(∇f, Inf)]
     iter = 0
     while hist∇f[end] > ϵ && fval > ftarget && iter < max_iter
-        d = -gradf(x)
-        α = stepsize(x, d, f, gradf)
+        d = -p.∇f(x)
+        α = stepsize(x,d,p)
         x = x + α * d
-        fval = f(x)
-        ∇f = gradf(x)
+        fval = p.f(x)
+        ∇f = p.∇f(x)
         iter += 1
         append!(histf, fval)
         append!(hist∇f, norm(∇f, Inf))
