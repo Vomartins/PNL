@@ -129,7 +129,7 @@ function discrete_integral(n::Int64)
     h = 1/(n+1)
     t(i) = h*i
     
-    p(x,i) = x[i] + (h/2)*((1-t(i))*sum(j -> t(j)*(x[j]+t(j)+1)^3, 1:i)+t(i)*sum(j -> (1-t(j))*(x[j]+t(j)+1)^3, (i+1):n))
+    p(x,i) = x[i] + (h/2)*( (1-t(i))*sum(j -> t(j)*(x[j]+t(j)+1)^3, 1:i) +t(i)*sum(j -> (1-t(j))*(x[j]+t(j)+1)^3, (i+1):n) )
     f(x) = sum(i-> p(x,i)^2 ,1:n)
     
     function q(x,i,k)
