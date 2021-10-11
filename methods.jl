@@ -288,9 +288,10 @@ function grid_search(E, R, estrategia, p::problems)
         for ρ in P
             p.parameters["η"] = ρ[1]
             p.parameters["γ"] = ρ[2]
-            erro = abs((grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)[2]-p.minima))
+            solver = grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)
+            erro = abs((solver[2]-p.minima))
             if !isnan(erro)
-                Erro[ρ] = erro
+                Erro[ρ] = (erro, solver[6])
             end
         end
         return Erro
@@ -298,9 +299,10 @@ function grid_search(E, R, estrategia, p::problems)
         for ρ in P
             p.parameters["β"] = ρ[1]
             p.parameters["α"] = ρ[2]
-            erro = abs((grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)[2]-p.minima))
+            solver = grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)
+            erro = abs((solver[2]-p.minima))
             if !isnan(erro)
-                Erro[ρ] = erro
+                Erro[ρ] = (erro, solver[6])
             end
         end
         return Erro
@@ -308,9 +310,10 @@ function grid_search(E, R, estrategia, p::problems)
         for ρ in P
             p.parameters["ϵ"] = ρ[1]
             p.parameters["ρ"] = ρ[2]
-            erro = abs((grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)[2]-p.minima))
+            solver = grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)
+            erro = abs((solver[2]-p.minima))
             if !isnan(erro)
-                Erro[ρ] = erro
+                Erro[ρ] = (erro, solver[6])
             end
         end
         return Erro
@@ -319,24 +322,26 @@ function grid_search(E, R, estrategia, p::problems)
     end
 end
 
-#Encontra o valor mínimo dos valores do dicionário e retorna o minimo com a chave correspondente
+#Encontra o valor mínimo dos valores do dicionário com tuplas de valores e retorna o minimo com a chave correspondente
 function find_min_dict(d)
     
     K = collect(keys(d))
     if isempty(K)
         return (0.0,0.0),"Erro - dicionário vazio"
     else
-        minval = d[K[1]]
+        minval = d[K[1]][1]
         minkey = K[1]
+        miniter = d[K[1]][2]
 
         for key in keys(d)
-            if d[key] < minval
+            if d[key][1] < minval
                 minkey = key
-                minval = d[key]
+                miniter = d[key][2]
+                minval = d[key][1]
             end
         end
 
-        return minkey, minval
+        return minkey, minval, miniter
     end
 end
 
