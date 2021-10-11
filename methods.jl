@@ -5,6 +5,7 @@ using ForwardDiff
 using IterTools
 
 struct problems
+    name::String
     f::Function
     ∇f::Function
     x₀::Vector{Float64}
@@ -24,6 +25,7 @@ end
 
 #incluir funções de teste
 function teste1()
+    name = "Teste 1"
     f(x) = 0.5*(x[1]-2)^2+(x[2]-1)^2
     
     ∇f(x) = [(x[1]-2),2*(x[2]-1)]
@@ -39,11 +41,13 @@ function teste1()
     parameters["ρ"] = 1
     parameters["β"] = 0.25
     parameters["α"] = 1    
-    return problems(f, ∇f, x₀, Ε, max_iter, minimizers, parameters)
+    return problems(name, f, ∇f, x₀, Ε, max_iter, minima, parameters)
 end
 
 #Função #01
 function Rosenbrock()
+    name = "Rosenbrock"
+    
     f(x) = (10*(x[2]-x[1]^2))^2 + (1-x[1])^2
     
     ∇f(x) = [-40*(x[2]-x[1]^2)*x[1]-2(1-x[1]),20*(x[2]-x[1]^2)]
@@ -59,11 +63,13 @@ function Rosenbrock()
     parameters["ρ"] = 1
     parameters["β"] = 0.25
     parameters["α"] = 1    
-    return problems(f, ∇f, x₀, T, max_iter, minimizers, parameters)
+    return problems(name, f, ∇f, x₀, T, max_iter, minima, parameters)
 end
 
 #função #09
 function Gaussian()
+    name = "Gaussian"
+    
     y = [0.0009, 0.0044, 0.0175, 0.0540, 0.1295, 0.2420, 0.3521, 0.3989, 0.3521, 0.2420, 0.1295, 0.0540, 0.0175, 0.0044, 0.0009]
     t(i) = (8-i)/2
     
@@ -78,7 +84,7 @@ function Gaussian()
     x₀ = [0.4, 1.0, 0.0]
     Ε = 1.0e-10
     max_iter = 10000
-    minimizers = 1.12793*(10^(-8))
+    minima = 1.12793*(10^(-8))
     parameters = Dict()
     parameters["η"] = 0.4
     parameters["γ"] = 0.8
@@ -86,11 +92,13 @@ function Gaussian()
     parameters["ρ"] = 1
     parameters["β"] = 0.4
     parameters["α"] = 1    
-    return problems(f, ∇f, x₀, Ε, max_iter, minimizers, parameters)
+    return problems(name, f, ∇f, x₀, Ε, max_iter, minima, parameters)
 end
 
 #função #26
 function trigonometric(n::Int64)
+    name = "Trigonometric"
+    
     m = n
     
     p(x,i) = (n - sum(j -> cos(x[j]), 1:m) + i*(1 - cos(x[i])) - sin(x[i]))
@@ -111,17 +119,18 @@ function trigonometric(n::Int64)
     parameters["ρ"] = 1
     parameters["β"] = 1.0e-06
     parameters["α"] = 1
-    return problems(f, ∇f, x₀, E, max_iter, minimizers, parameters)
+    return problems(name, f, ∇f, x₀, E, max_iter, minima, parameters)
 end
 
 #função #29
 function discrete_integral(n::Int64)
-    m = n
+    name = "Discrete Integral"
+    
     h = 1/(n+1)
     t(i) = h*i
     
-    p(x,i) = x[i] + (h/2)*((1-t(i))*sum(j -> t(j)*(x[j]+t(j)+1)^3,j=1:i)+t(i)*sum(j -> (1-t(j))*(x[j]+t(j)+1)^3,j=i+1:n))
-    f(x) = sum(i-> p(x,i)^2 ,1:m)
+    p(x,i) = x[i] + (h/2)*((1-t(i))*sum(j -> t(j)*(x[j]+t(j)+1)^3, 1:i)+t(i)*sum(j -> (1-t(j))*(x[j]+t(j)+1)^3, (i+1):n))
+    f(x) = sum(i-> p(x,i)^2 ,1:n)
     
     function q(x,i,k)
         if k <= i
@@ -135,7 +144,7 @@ function discrete_integral(n::Int64)
     dp(x,k) = 2*sum(i -> p(x,i)*dq(x,i,k), i=1:m) 
     ∇f(x) = [dp(x,k) for k in 1:m]
         
-    x₀= [t(i)*(t(i)-1) for i in i:n]
+    x₀= [t(i)*(t(i)-1) for i in 1:n]
     E = 1.0e-06
     max_iter = 3000
     minimizers = Dict()
@@ -147,11 +156,13 @@ function discrete_integral(n::Int64)
     parameters["ρ"] = 1
     parameters["β"] = 1.0e-06
     parameters["α"] = 1
-    return problems(f, ∇f, x₀, E, max_iter, minimizers, parameters)
+    return problems(name, f, ∇f, x₀, E, max_iter, minima, parameters)
 end
 
 #função #33
 function linear_rank1(n::Int64, m::Int64)
+    name = "Linear, rank 1"
+    
     if m<n
         error("É necessário que m ≥ n")
         return nothing
@@ -160,13 +171,13 @@ function linear_rank1(n::Int64, m::Int64)
     p(x,i) = i*(sum(j->j*x[j], 1:n)) - 1
     f(x) = sum(i -> p(x,i)^2 ,1:m)
         
-    dp(x,i) = sum(j-> 2*i*j*p(x,j), j=1:m) 
+    dp(x,i) = sum(j-> 2*i*j*p(x,j), 1:m) 
     ∇f(x) = [dp(x,i) for i in 1:m]
         
-    x₀= ones(n)
+    x₀= ones(m)
     E = 1.0e-06
     max_iter = 3000
-    minima = 0.0
+    minima = (m*(m-1))/(2*(2*m+1))
     parameters = Dict()
     parameters["η"] = 0.4
     parameters["γ"] = 0.8
@@ -174,7 +185,7 @@ function linear_rank1(n::Int64, m::Int64)
     parameters["ρ"] = 1
     parameters["β"] = 1.0e-06
     parameters["α"] = 1
-    return problems(f, ∇f, x₀, E, max_iter, minimizers, parameters)
+    return problems(name, f, ∇f, x₀, E, max_iter, minima, parameters)
 end
 
 #Busca exata
@@ -255,7 +266,7 @@ function interpolacao(x, d, p::problems)
         v = β*(M*v)
         a = v[1]
         b = v[2]
-        raiz = sqrt(b^2 - 3*a*dot(dϕ(0),d))
+        raiz = real(sqrt(Complex(b^2 - 3*a*dot(dϕ(0),d))))
         α₀ = α
         α = (-b + raiz)/(3*a)
     end
@@ -270,21 +281,30 @@ function grid_search(E, R, estrategia, p::problems)
         for ρ in P
             p.parameters["η"] = ρ[1]
             p.parameters["γ"] = ρ[2]
-            Erro[ρ] = abs(grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)[2]-p.minima)
+            erro = abs((grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)[2]-p.minima))
+            if !isnan(erro)
+                Erro[ρ] = erro
+            end
         end
         return Erro
     elseif estrategia == interpolacao
         for ρ in P
             p.parameters["β"] = ρ[1]
             p.parameters["α"] = ρ[2]
-            Erro[ρ] = abs(grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)[2]-p.minima)
+            erro = abs((grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)[2]-p.minima))
+            if !isnan(erro)
+                Erro[ρ] = erro
+            end
         end
         return Erro
     elseif estrategia == secao_aurea
         for ρ in P
             p.parameters["ϵ"] = ρ[1]
             p.parameters["ρ"] = ρ[2]
-            Erro[ρ] = abs(grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)[2]-p.minima)
+            erro = abs((grad_descent(p,estrategia,ϵ=p.T,max_iter=p.max_iter)[2]-p.minima))
+            if !isnan(erro)
+                Erro[ρ] = erro
+            end
         end
         return Erro
     else
@@ -295,18 +315,22 @@ end
 #Encontra o valor mínimo dos valores do dicionário e retorna o minimo com a chave correspondente
 function find_min_dict(d)
     
-    K = collect(keys(Erro))
-    minval = d[K[1]]
-    minkey = K[1]
+    K = collect(keys(d))
+    if isempty(K)
+        return (0.0,0.0),"Erro - dicionário vazio"
+    else
+        minval = d[K[1]]
+        minkey = K[1]
 
-    for key in keys(d)
-        if d[key] < minval
-            minkey = key
-            minval = d[key]
+        for key in keys(d)
+            if d[key] < minval
+                minkey = key
+                minval = d[key]
+            end
         end
-    end
 
-    return minkey, minval
+        return minkey, minval
+    end
 end
 
 #Método do gradiente descendente 
