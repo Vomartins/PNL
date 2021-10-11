@@ -129,7 +129,14 @@ function discrete_integral(n::Int64)
     h = 1/(n+1)
     t(i) = h*i
     
-    p(x,i) = x[i] + (h/2)*( (1-t(i))*sum(j -> t(j)*(x[j]+t(j)+1)^3, 1:i) +t(i)*sum(j -> (1-t(j))*(x[j]+t(j)+1)^3, (i+1):n) )
+    function p(x,i)
+        if i < n
+            return x[i] + (h/2)*((1-t(i))*sum(j -> t(j)*(x[j]+t(j)+1)^3, 1:i) +t(i)*sum(j -> (1-t(j))*(x[j]+t(j)+1)^3, (i+1):n))
+        else
+            return x[i] + (h/2)*((1-t(i))*sum(j -> t(j)*(x[j]+t(j)+1)^3, 1:i))
+        end
+    end
+    
     f(x) = sum(i-> p(x,i)^2 ,1:n)
     
     function q(x,i,k)
@@ -140,9 +147,9 @@ function discrete_integral(n::Int64)
         end
     end
         
-    dq(x,i,k) = delta(i,k)+(3*h*(x[k]+t[k]+1)^2)*q(x,i,k)/2 
-    dp(x,k) = 2*sum(i -> p(x,i)*dq(x,i,k), i=1:m) 
-    ∇f(x) = [dp(x,k) for k in 1:m]
+    dq(x,i,k) = delta(i,k)+(3*h*(x[k]+t(k)+1)^2)*q(x,i,k)/2 
+    dp(x,k) = 2*sum(i -> p(x,i)*dq(x,i,k), 1:n) 
+    ∇f(x) = [dp(x,k) for k in 1:n]
         
     x₀= [t(i)*(t(i)-1) for i in 1:n]
     E = 1.0e-06
