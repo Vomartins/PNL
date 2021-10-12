@@ -53,8 +53,8 @@ function Rosenbrock()
     ∇f(x) = [-40*(x[2]-x[1]^2)*x[1]-2(1-x[1]),20*(x[2]-x[1]^2)]
     
     x₀ = [-1.2,1.0]
-    T = 1.0e-5
-    max_iter = 2000
+    T = 1.0e-6
+    max_iter = 5000
     minima = 0.0 
     parameters = Dict()
     parameters["η"] = 0.25
@@ -82,8 +82,8 @@ function Gaussian()
     ∇f(x) = [sum(i -> dp₁(x,i),1:15), sum(i -> dp₂(x,i),1:15), sum(i -> dp₃(x,i),1:15)]
     
     x₀ = [0.4, 1.0, 0.0]
-    Ε = 1.0e-10
-    max_iter = 10000
+    Ε = 1.0e-6
+    max_iter = 5000
     minima = 1.12793*(10^(-8))
     parameters = Dict()
     parameters["η"] = 0.4
@@ -110,7 +110,7 @@ function trigonometric(n::Int64)
     
     x₀= (1/n)*ones(n)
     E = 1.0e-06
-    max_iter = 3000
+    max_iter = 5000
     minima = 0.0
     parameters = Dict()
     parameters["η"] = 0.4
@@ -153,7 +153,7 @@ function discrete_integral(n::Int64)
         
     x₀= [t(i)*(t(i)-1) for i in 1:n]
     E = 1.0e-06
-    max_iter = 3000
+    max_iter = 5000
     minimizers = Dict()
     minima = 0.0
     parameters = Dict()
@@ -183,7 +183,7 @@ function linear_rank1(n::Int64, m::Int64)
         
     x₀= ones(m)
     E = 1.0e-06
-    max_iter = 3000
+    max_iter = 5000
     minima = (m*(m-1))/(2*(2*m+1))
     parameters = Dict()
     parameters["η"] = 0.4
